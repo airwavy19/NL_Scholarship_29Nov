@@ -19,6 +19,7 @@
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background: var(--bg-dark);
@@ -140,13 +141,9 @@ body {
 
 .university-name {
     font-size: clamp(2rem, 4vw, 2.5rem);
-    font-weight: 700;
     color: var(--text-primary);
-    -webkit-text-fill-color: var(--text-primary);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
     margin-bottom: 0.5rem;
+    font-weight: 700;
 }
 
 .university-school {
