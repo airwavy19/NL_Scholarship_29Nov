@@ -27,3 +27,26 @@ window.addEventListener('scroll', () => {
         heroGradient.style.transform = `translateY(${scrolled * 0.5}px)`;
     }
 });
+
+// Update the tooltip creation to only show on hover
+const deadlineDetails = document.createElement('div');
+deadlineDetails.className = 'deadline-details';
+
+// Only show tooltip when hovering over a date with deadlines
+dateCell.addEventListener('mouseenter', () => {
+    if (deadlinesByDate[day]) {
+        deadlineDetails.style.display = 'block';
+        setTimeout(() => {
+            deadlineDetails.style.opacity = '1';
+            deadlineDetails.style.pointerEvents = 'auto';
+        }, 10);
+    }
+});
+
+dateCell.addEventListener('mouseleave', () => {
+    deadlineDetails.style.opacity = '0';
+    deadlineDetails.style.pointerEvents = 'none';
+    setTimeout(() => {
+        deadlineDetails.style.display = 'none';
+    }, 200);
+});

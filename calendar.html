@@ -64,8 +64,16 @@
         .calendar-month {
             background: var(--bg-card);
             border-radius: var(--border-radius);
-            padding: 1.5rem;
             box-shadow: var(--shadow-md);
+            overflow: hidden;
+        }
+
+        .calendar-month-header {
+            padding: 1.5rem 1.5rem 0;
+        }
+
+        .calendar-month-content {
+            padding: 0 1.5rem 1.5rem;
         }
 
         .month-header {
@@ -147,31 +155,37 @@
             font-weight: 700;
         }
 
-        .deadline-details {
-            display: none;
-            position: absolute;
-            top: calc(100% + 0.5rem);
-            left: 0;
-            right: 0;
-            background: var(--bg-card);
-            border-radius: var(--border-radius);
-            padding: 1rem;
-            box-shadow: var(--shadow-lg);
-            z-index: 10;
-            min-width: 280px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        .month-deadlines {
+            margin-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 1.5rem;
         }
 
-        .date-cell:hover .deadline-details {
-            display: block;
+        .month-deadlines h3 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .month-deadlines h3 i {
+            font-size: 1.1em;
         }
 
         .deadline-item {
-            padding: 0.75rem;
-            margin-bottom: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
             background: rgba(255, 255, 255, 0.03);
-            border-radius: 6px;
+            border-radius: 8px;
             border-left: 3px solid var(--text-primary);
+            transition: var(--transition);
+        }
+
+        .deadline-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+            transform: translateX(4px);
         }
 
         .deadline-item:last-child {
@@ -516,19 +530,27 @@
                 const monthSection = document.createElement('div');
                 monthSection.className = 'calendar-month';
                 monthSection.innerHTML = `
-                    <div class="month-header">
-                        <h2 class="month-title">${monthName} ${year}</h2>
+                    <div class="calendar-month-header">
+                        <div class="month-header">
+                            <h2 class="month-title">${monthName} ${year}</h2>
+                        </div>
+                        <div class="calendar-days">
+                            <div class="day-header">Sun</div>
+                            <div class="day-header">Mon</div>
+                            <div class="day-header">Tue</div>
+                            <div class="day-header">Wed</div>
+                            <div class="day-header">Thu</div>
+                            <div class="day-header">Fri</div>
+                            <div class="day-header">Sat</div>
+                        </div>
+                        <div class="calendar-dates" id="dates-${month}-${year}"></div>
                     </div>
-                    <div class="calendar-days">
-                        <div class="day-header">Sun</div>
-                        <div class="day-header">Mon</div>
-                        <div class="day-header">Tue</div>
-                        <div class="day-header">Wed</div>
-                        <div class="day-header">Thu</div>
-                        <div class="day-header">Fri</div>
-                        <div class="day-header">Sat</div>
+                    <div class="calendar-month-content">
+                        <div class="month-deadlines" id="deadlines-${month}-${year}">
+                            <h3><i class="fas fa-calendar-check"></i> Deadlines</h3>
+                            <div class="deadline-items"></div>
+                        </div>
                     </div>
-                    <div class="calendar-dates" id="dates-${month}-${year}"></div>
                 `;
 
                 calendarContainer.appendChild(monthSection);
@@ -566,9 +588,8 @@
                         deadlineCount.textContent = deadlinesByDate[day].length;
                         dateCell.appendChild(deadlineCount);
 
-                        // Create tooltip with deadline details
-                        const deadlineDetails = document.createElement('div');
-                        deadlineDetails.className = 'deadline-details';
+                        // Add deadline items to the month's deadline section
+                        const monthDeadlines = document.querySelector(`#deadlines-${month}-${year} .deadline-items`);
                         
                         deadlinesByDate[day].forEach(deadline => {
                             const deadlineItem = document.createElement('div');
@@ -576,13 +597,12 @@
                             deadlineItem.innerHTML = `
                                 <div class="university-name">${deadline.universityFull}</div>
                                 <div class="program-name">${deadline.programFull}</div>
+                                <div class="deadline-date">${deadline.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
                                 <div class="deadline-type">${deadline.type}</div>
                                 ${deadline.notes ? `<div class="deadline-note">${deadline.notes}</div>` : ''}
                             `;
-                            deadlineDetails.appendChild(deadlineItem);
+                            monthDeadlines.appendChild(deadlineItem);
                         });
-
-                        dateCell.appendChild(deadlineDetails);
                     }
 
                     // Highlight today's date
