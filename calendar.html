@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>University Application Deadlines for Non-EU Students</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .calendar-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .calendar-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .filters {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .filter-select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--text-secondary);
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 4rem;
+        }
+
+        .calendar-month {
+            background: var(--bg-card);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        .month-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .month-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .calendar-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .day-header {
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            padding: 0.5rem 0;
+        }
+
+        .calendar-dates {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+        }
+
+        .date-cell {
+            aspect-ratio: 1;
+            padding: 0.5rem;
+            border-radius: 6px;
+            position: relative;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .date-cell:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .date-number {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .has-deadline {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .has-deadline .date-number {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .deadline-count {
+            position: absolute;
+            top: 0.25rem;
+            right: 0.25rem;
+            background: var(--text-primary);
+            color: var(--bg-dark);
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .deadline-details {
+            display: none;
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            left: 0;
+            right: 0;
+            background: var(--bg-card);
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            box-shadow: var(--shadow-lg);
+            z-index: 10;
+            min-width: 280px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .date-cell:hover .deadline-details {
+            display: block;
+        }
+
+        .deadline-item {
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 6px;
+            border-left: 3px solid var(--text-primary);
+        }
+
+        .deadline-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .university-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .program-name {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .deadline-type {
+            display: inline-block;
+            font-size: 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.2rem 0.5rem;
+            border-radius: 12px;
+            margin-top: 0.25rem;
+        }
+
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-muted);
+        }
+
+        .month-section {
+            background: var(--bg-card);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        .month-title {
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .deadline-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            transition: var(--transition);
+        }
+
+        .deadline-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+            transform: translateX(4px);
+        }
+
+        .deadline-date {
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .deadline-date::before {
+            content: '📅';
+            font-size: 1.1em;
+        }
+
+        .university-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .program-name {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .deadline-note {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 2rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .back-link:hover {
+            color: var(--text-primary);
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .calendar-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to Universities</a>
+        
+        <div class="calendar-header">
+            <h1>Application Deadlines for Non-EU Students</h1>
+            <p class="hero-subtitle">Important dates for international applicants from Indonesia</p>
+        </div>
+
+        <div class="filters">
+            <div class="filter-group">
+                <label for="university-filter">Filter by University</label>
+                <select id="university-filter" class="filter-select">
+                    <option value="">All Universities</option>
+                    <option value="Erasmus">Erasmus University Rotterdam</option>
+                    <option value="Amsterdam">University of Amsterdam</option>
+                    <option value="Delft">Delft University of Technology</option>
+                    <option value="Eindhoven">Eindhoven University of Technology</option>
+                    <option value="Groningen">University of Groningen</option>
+                    <option value="Tilburg">Tilburg University</option>
+                    <option value="Maastricht">Maastricht University</option>
+                    <option value="Twente">University of Twente</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="program-filter">Filter by Program</label>
+                <select id="program-filter" class="filter-select">
+                    <option value="">All Programs</option>
+                    <option value="Supply Chain">Supply Chain Management</option>
+                    <option value="Business">Business Administration</option>
+                    <option value="Logistics">Logistics</option>
+                    <option value="Operations">Operations Management</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="month-filter">Filter by Month</label>
+                <select id="month-filter" class="filter-select">
+                    <option value="">All Months</option>
+                    <option value="0">January</option>
+                    <option value="1">February</option>
+                    <option value="2">March</option>
+                    <option value="3">April</option>
+                    <option value="4">May</option>
+                    <option value="5">June</option>
+                    <option value="6">July</option>
+                    <option value="7">August</option>
+                    <option value="8">September</option>
+                    <option value="9">October</option>
+                    <option value="10">November</option>
+                    <option value="11">December</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="calendar-grid" id="calendar-container">
+            <!-- Calendar will be generated by JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        // Sample data for deadlines (Non-EU students only)
+        const deadlines = [
+            // January
+            {
+                id: 1,
+                date: new Date(2025, 0, 15), // Month is 0-indexed (0 = January)
+                university: 'Erasmus',
+                universityFull: 'Erasmus University Rotterdam',
+                program: 'Supply Chain',
+                programFull: 'MSc Supply Chain Management',
+                type: 'Non-EU',
+                notes: 'Early application deadline'
+            },
+            {
+                id: 2,
+                date: new Date(2025, 0, 31),
+                university: 'Amsterdam',
+                universityFull: 'University of Amsterdam',
+                program: 'Business',
+                programFull: 'MSc Business Administration',
+                type: 'Non-EU',
+                notes: 'Early decision deadline'
+            },
+            // February
+            {
+                id: 3,
+                date: new Date(2025, 1, 28),
+                university: 'Delft',
+                universityFull: 'Delft University of Technology',
+                program: 'Logistics',
+                programFull: 'MSc Transport, Infrastructure & Logistics',
+                type: 'Non-EU',
+                notes: 'Final deadline'
+            },
+            // March
+            {
+                id: 4,
+                date: new Date(2025, 2, 1),
+                university: 'Eindhoven',
+                universityFull: 'Eindhoven University of Technology',
+                program: 'Operations',
+                programFull: 'MSc Operations Management & Logistics',
+                type: 'Non-EU',
+                notes: 'Early application deadline'
+            },
+            {
+                id: 5,
+                date: new Date(2025, 2, 15),
+                university: 'Groningen',
+                universityFull: 'University of Groningen',
+                program: 'Supply Chain',
+                programFull: 'MSc Supply Chain Management',
+                type: 'Non-EU',
+                notes: 'Early application deadline'
+            },
+            // April
+            {
+                id: 6,
+                date: new Date(2025, 3, 1),
+                university: 'Tilburg',
+                universityFull: 'Tilburg University',
+                program: 'Operations',
+                programFull: 'MSc Operations Management & Logistics',
+                type: 'Non-EU',
+                notes: 'Early application deadline'
+            },
+            // May
+            {
+                id: 7,
+                date: new Date(2025, 4, 1),
+                university: 'Erasmus',
+                universityFull: 'Erasmus University Rotterdam',
+                program: 'Supply Chain',
+                programFull: 'MSc Supply Chain Management',
+                type: 'Non-EU',
+                notes: 'Final deadline'
+            },
+            {
+                id: 8,
+                date: new Date(2025, 4, 15),
+                university: 'Twente',
+                universityFull: 'University of Twente',
+                program: 'Business',
+                programFull: 'MSc Business Administration',
+                type: 'Non-EU',
+                notes: 'Final deadline'
+            },
+            // June
+            {
+                id: 9,
+                date: new Date(2025, 5, 1),
+                university: 'Maastricht',
+                universityFull: 'Maastricht University',
+                program: 'Supply Chain',
+                programFull: 'MSc Global Supply Chain Management',
+                type: 'Non-EU',
+                notes: 'Final deadline'
+            }
+        ];
+
+        // Get DOM elements
+        const calendarContainer = document.getElementById('calendar-container');
+        const universityFilter = document.getElementById('university-filter');
+        const programFilter = document.getElementById('program-filter');
+        const monthFilter = document.getElementById('month-filter');
+
+        // Initialize the calendar
+        function initCalendar() {
+            renderCalendar();
+            setupEventListeners();
+        }
+
+        // Render the calendar with filtered data
+        function renderCalendar() {
+            const selectedUniversity = universityFilter.value;
+            const selectedProgram = programFilter.value;
+            const selectedMonth = monthFilter.value === '' ? null : parseInt(monthFilter.value);
+
+            // Filter deadlines
+            const filteredDeadlines = deadlines.filter(deadline => {
+                const matchesUniversity = !selectedUniversity || deadline.university === selectedUniversity;
+                const matchesProgram = !selectedProgram || deadline.program === selectedProgram;
+                const matchesMonth = selectedMonth === null || deadline.date.getMonth() === selectedMonth;
+                return matchesUniversity && matchesProgram && matchesMonth;
+            });
+
+            // Group deadlines by month
+            const deadlinesByMonth = {};
+            filteredDeadlines.forEach(deadline => {
+                const monthYear = `${deadline.date.getFullYear()}-${deadline.date.getMonth()}`;
+                if (!deadlinesByMonth[monthYear]) {
+                    deadlinesByMonth[monthYear] = [];
+                }
+                deadlinesByMonth[monthYear].push(deadline);
+            });
+
+            // Clear existing content
+            calendarContainer.innerHTML = '';
+
+            // If no results, show empty state
+            if (Object.keys(deadlinesByMonth).length === 0) {
+                calendarContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-calendar-times" style="font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                        <h3>No deadlines found</h3>
+                        <p>Try adjusting your filters to see more results.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Sort months chronologically
+            const sortedMonths = Object.keys(deadlinesByMonth).sort();
+
+            // Render each month
+            sortedMonths.forEach(monthKey => {
+                const monthDeadlines = deadlinesByMonth[monthKey];
+                const firstDeadline = monthDeadlines[0];
+                const month = firstDeadline.date.getMonth();
+                const year = firstDeadline.date.getFullYear();
+                
+                const monthName = new Date(year, month).toLocaleString('default', { month: 'long' });
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                const firstDayOfMonth = new Date(year, month, 1).getDay(); // 0 = Sunday, 1 = Monday, etc.
+
+                // Create month section
+                const monthSection = document.createElement('div');
+                monthSection.className = 'calendar-month';
+                monthSection.innerHTML = `
+                    <div class="month-header">
+                        <h2 class="month-title">${monthName} ${year}</h2>
+                    </div>
+                    <div class="calendar-days">
+                        <div class="day-header">Sun</div>
+                        <div class="day-header">Mon</div>
+                        <div class="day-header">Tue</div>
+                        <div class="day-header">Wed</div>
+                        <div class="day-header">Thu</div>
+                        <div class="day-header">Fri</div>
+                        <div class="day-header">Sat</div>
+                    </div>
+                    <div class="calendar-dates" id="dates-${month}-${year}"></div>
+                `;
+
+                calendarContainer.appendChild(monthSection);
+
+                // Get the dates container
+                const datesContainer = document.getElementById(`dates-${month}-${year}`);
+                
+                // Add empty cells for days before the first of the month
+                for (let i = 0; i < firstDayOfMonth; i++) {
+                    const emptyCell = document.createElement('div');
+                    emptyCell.className = 'date-cell';
+                    datesContainer.appendChild(emptyCell);
+                }
+
+                // Add cells for each day of the month
+                const deadlinesByDate = {};
+                monthDeadlines.forEach(deadline => {
+                    const day = deadline.date.getDate();
+                    if (!deadlinesByDate[day]) {
+                        deadlinesByDate[day] = [];
+                    }
+                    deadlinesByDate[day].push(deadline);
+                });
+
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dateCell = document.createElement('div');
+                    dateCell.className = 'date-cell';
+                    dateCell.innerHTML = `<div class="date-number">${day}</div>`;
+
+                    // Check if this date has deadlines
+                    if (deadlinesByDate[day]) {
+                        dateCell.classList.add('has-deadline');
+                        const deadlineCount = document.createElement('div');
+                        deadlineCount.className = 'deadline-count';
+                        deadlineCount.textContent = deadlinesByDate[day].length;
+                        dateCell.appendChild(deadlineCount);
+
+                        // Create tooltip with deadline details
+                        const deadlineDetails = document.createElement('div');
+                        deadlineDetails.className = 'deadline-details';
+                        
+                        deadlinesByDate[day].forEach(deadline => {
+                            const deadlineItem = document.createElement('div');
+                            deadlineItem.className = 'deadline-item';
+                            deadlineItem.innerHTML = `
+                                <div class="university-name">${deadline.universityFull}</div>
+                                <div class="program-name">${deadline.programFull}</div>
+                                <div class="deadline-type">${deadline.type}</div>
+                                ${deadline.notes ? `<div class="deadline-note">${deadline.notes}</div>` : ''}
+                            `;
+                            deadlineDetails.appendChild(deadlineItem);
+                        });
+
+                        dateCell.appendChild(deadlineDetails);
+                    }
+
+                    // Highlight today's date
+                    const today = new Date();
+                    if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+                        dateCell.style.border = '1px solid var(--text-primary)';
+                    }
+
+                    datesContainer.appendChild(dateCell);
+                }
+            });
+
+            // Scroll to current month
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+            const currentMonthElement = document.querySelector(`#dates-${currentMonth}-${currentYear}`);
+            if (currentMonthElement) {
+                currentMonthElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        // Set up event listeners for filters
+        function setupEventListeners() {
+            universityFilter.addEventListener('change', renderCalendar);
+            programFilter.addEventListener('change', renderCalendar);
+            monthFilter.addEventListener('change', renderCalendar);
+        }
+
+        // Initialize the calendar when the page loads
+        document.addEventListener('DOMContentLoaded', initCalendar);
+    </script>
+</body>
+</html>
