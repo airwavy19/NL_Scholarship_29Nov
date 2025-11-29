@@ -297,6 +297,13 @@
             text-decoration: underline;
         }
 
+        .deadline-cost {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+
         .back-link {
             display: inline-block;
             margin-bottom: 2rem;
@@ -328,6 +335,14 @@
 
         <div class="filters">
             <div class="filter-group">
+                <label for="country-filter">Filter by Country</label>
+                <select id="country-filter" class="filter-select">
+                    <option value="">All Countries</option>
+                    <option value="Netherlands">Netherlands</option>
+                    <option value="Germany">Germany</option>
+                </select>
+            </div>
+            <div class="filter-group">
                 <label for="university-filter">Filter by University</label>
                 <select id="university-filter" class="filter-select">
                     <option value="">All Universities</option>
@@ -339,6 +354,9 @@
                     <option value="Tilburg">Tilburg University</option>
                     <option value="Maastricht">Maastricht University</option>
                     <option value="Twente">University of Twente</option>
+                    <option value="TU Munich">Technical University of Munich</option>
+                    <option value="KLU">Kühne Logistics University</option>
+                    <option value="Mannheim">Mannheim Business School</option>
                 </select>
             </div>
             <div class="filter-group">
@@ -370,6 +388,16 @@
                 </select>
             </div>
             <div class="filter-group">
+                <label for="cost-filter">Filter by Cost (EUR)</label>
+                <select id="cost-filter" class="filter-select">
+                    <option value="">All Costs</option>
+                    <option value="0-0">Free</option>
+                    <option value="1-10000">€1 - €10,000</option>
+                    <option value="10001-20000">€10,001 - €20,000</option>
+                    <option value="20001-999999">€20,001+</option>
+                </select>
+            </div>
+            <div class="filter-group">
                 <label for="category-filter">Filter by Deadline Type</label>
                 <select id="category-filter" class="filter-select">
                     <option value="">All Types</option>
@@ -392,6 +420,8 @@
         const programFilter = document.getElementById('program-filter');
         const monthFilter = document.getElementById('month-filter');
         const categoryFilter = document.getElementById('category-filter');
+        const countryFilter = document.getElementById('country-filter');
+        const costFilter = document.getElementById('cost-filter');
 
         // Initialize the calendar
         function initCalendar() {
@@ -405,6 +435,8 @@
             const selectedProgram = programFilter.value;
             const selectedMonth = monthFilter.value === '' ? null : parseInt(monthFilter.value);
             const selectedCategory = categoryFilter.value;
+            const selectedCountry = countryFilter.value;
+            const selectedCost = costFilter.value;
 
             // Filter deadlines
             const filteredDeadlines = deadlines.filter(deadline => {
@@ -412,7 +444,17 @@
                 const matchesProgram = !selectedProgram || deadline.program === selectedProgram;
                 const matchesMonth = selectedMonth === null || deadline.date.getMonth() === selectedMonth;
                 const matchesCategory = !selectedCategory || deadline.category === selectedCategory;
-                return matchesUniversity && matchesProgram && matchesMonth && matchesCategory;
+                const matchesCountry = !selectedCountry || deadline.country === selectedCountry;
+
+                let matchesCost = true;
+                if (selectedCost && deadline.category === 'university') {
+                    const [min, max] = selectedCost.split('-').map(Number);
+                    matchesCost = deadline.cost >= min && deadline.cost <= max;
+                } else if (selectedCost && deadline.category === 'scholarship') {
+                    matchesCost = false; // Do not show scholarships if a cost filter is active
+                }
+
+                return matchesUniversity && matchesProgram && matchesMonth && matchesCategory && matchesCountry && matchesCost;
             });
 
             // Group deadlines by month
@@ -534,6 +576,7 @@
                                 deadlineItem.innerHTML = `
                                     <div class="university-name">${deadline.universityFull}</div>
                                     <div class="program-name">${deadline.programFull}</div>
+                                    <div class="deadline-cost">€${deadline.cost.toLocaleString('de-DE')}</div>
                                     <div class="deadline-date">${deadline.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
                                     ${deadline.notes ? `<div class="deadline-note">${deadline.notes}</div>` : ''}
                                     ${deadline.source ? `<div class="deadline-source"><a href="${deadline.source}" target="_blank" rel="noopener noreferrer">Source</a></div>` : ''}
@@ -568,6 +611,8 @@
             programFilter.addEventListener('change', renderCalendar);
             monthFilter.addEventListener('change', renderCalendar);
             categoryFilter.addEventListener('change', renderCalendar);
+            countryFilter.addEventListener('change', renderCalendar);
+            costFilter.addEventListener('change', renderCalendar);
         }
 
         // Initialize the calendar when the page loads
