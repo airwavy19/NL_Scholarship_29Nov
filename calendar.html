@@ -281,6 +281,22 @@
             font-style: italic;
         }
 
+        .deadline-source {
+            margin-top: 0.4rem;
+            font-size: 0.85rem;
+        }
+
+        .deadline-source a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .deadline-source a:hover {
+            color: var(--text-primary);
+            text-decoration: underline;
+        }
+
         .back-link {
             display: inline-block;
             margin-bottom: 2rem;
@@ -353,6 +369,14 @@
                     <option value="11">December</option>
                 </select>
             </div>
+            <div class="filter-group">
+                <label for="category-filter">Filter by Deadline Type</label>
+                <select id="category-filter" class="filter-select">
+                    <option value="">All Types</option>
+                    <option value="university">University</option>
+                    <option value="scholarship">Scholarship</option>
+                </select>
+            </div>
         </div>
 
         <div class="calendar-grid" id="calendar-container">
@@ -367,6 +391,7 @@
         const universityFilter = document.getElementById('university-filter');
         const programFilter = document.getElementById('program-filter');
         const monthFilter = document.getElementById('month-filter');
+        const categoryFilter = document.getElementById('category-filter');
 
         // Initialize the calendar
         function initCalendar() {
@@ -379,13 +404,15 @@
             const selectedUniversity = universityFilter.value;
             const selectedProgram = programFilter.value;
             const selectedMonth = monthFilter.value === '' ? null : parseInt(monthFilter.value);
+            const selectedCategory = categoryFilter.value;
 
             // Filter deadlines
             const filteredDeadlines = deadlines.filter(deadline => {
                 const matchesUniversity = !selectedUniversity || deadline.university === selectedUniversity;
                 const matchesProgram = !selectedProgram || deadline.program === selectedProgram;
                 const matchesMonth = selectedMonth === null || deadline.date.getMonth() === selectedMonth;
-                return matchesUniversity && matchesProgram && matchesMonth;
+                const matchesCategory = !selectedCategory || deadline.category === selectedCategory;
+                return matchesUniversity && matchesProgram && matchesMonth && matchesCategory;
             });
 
             // Group deadlines by month
@@ -495,13 +522,23 @@
                         deadlinesByDate[day].forEach(deadline => {
                             const deadlineItem = document.createElement('div');
                             deadlineItem.className = 'deadline-item';
-                            deadlineItem.innerHTML = `
-                                <div class="university-name">${deadline.universityFull}</div>
-                                <div class="program-name">${deadline.programFull}</div>
-                                <div class="deadline-date">${deadline.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
-                                <!-- <div class="deadline-type">${deadline.type}</div> -->
-                                ${deadline.notes ? `<div class="deadline-note">${deadline.notes}</div>` : ''}
-                            `;
+                            if (deadline.category === 'scholarship') {
+                                deadlineItem.innerHTML = `
+                                    <div class="university-name"><i class="fas fa-award"></i> ${deadline.scholarshipName}</div>
+                                    <div class="program-name">${deadline.description}</div>
+                                    <div class="deadline-date">${deadline.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
+                                    ${deadline.notes ? `<div class="deadline-note">${deadline.notes}</div>` : ''}
+                                    ${deadline.source ? `<div class="deadline-source"><a href="${deadline.source}" target="_blank" rel="noopener noreferrer">Source</a></div>` : ''}
+                                `;
+                            } else {
+                                deadlineItem.innerHTML = `
+                                    <div class="university-name">${deadline.universityFull}</div>
+                                    <div class="program-name">${deadline.programFull}</div>
+                                    <div class="deadline-date">${deadline.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
+                                    ${deadline.notes ? `<div class="deadline-note">${deadline.notes}</div>` : ''}
+                                    ${deadline.source ? `<div class="deadline-source"><a href="${deadline.source}" target="_blank" rel="noopener noreferrer">Source</a></div>` : ''}
+                                `;
+                            }
                             monthDeadlines.appendChild(deadlineItem);
                         });
                     }
@@ -530,6 +567,7 @@
             universityFilter.addEventListener('change', renderCalendar);
             programFilter.addEventListener('change', renderCalendar);
             monthFilter.addEventListener('change', renderCalendar);
+            categoryFilter.addEventListener('change', renderCalendar);
         }
 
         // Initialize the calendar when the page loads
